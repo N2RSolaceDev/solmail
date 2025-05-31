@@ -610,14 +610,5 @@ function getEligibleRole(member) {
     return null; // No eligible role
 }
 
-// Initialize Express app
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-
 // Login the bot
 client.login('MTM0MzI2NTQ0MzY5MDk3MTE4Nw.GVRZvx.B2uAuVR1U_UCYBFIAUhNrys3Fg4fFxUXYb9qTQ'); // Replace with your bot token
