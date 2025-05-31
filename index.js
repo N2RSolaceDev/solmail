@@ -1,4 +1,3 @@
-// Import required modules from discord.js
 import {
     Client,
     GatewayIntentBits,
@@ -11,19 +10,9 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder
 } from 'discord.js';
+const express = require('express'); // Add Express for HTTP server
 
-// Import Express and HTTP for web server
-import express from 'express';
-import http from 'http';
-
-// Create Express app and HTTP server
-const app = express();
-const server = http.createServer(app);
-
-// Define port (for hosting services)
-const PORT = process.env.PORT || 3000;
-
-// Initialize the Discord client
+// Bot setup
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -55,19 +44,21 @@ const ALLOWED_ROLE_IDS = [
 const modmailChannels = {}; // Dictionary to store ongoing modmail channels
 let supportPanelMessageId = null;
 
-// Web server route
+// Start Express server
+const app = express();
+const PORT = 3000; // You can change this port if needed
+
 app.get('/', (req, res) => {
-    res.send('Discord bot is running!');
+    res.send('SolBots Discord Bot is running!');
 });
 
-// Start the web server
-server.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`🌐 Web server is running on http://localhost:${PORT}`);
 });
 
 // When the bot is ready
 client.once('ready', async () => {
-    console.log(`Logged in as ${client.user.tag}`);
+    console.log(`✅ Logged in as ${client.user.tag}`);
     // Update or send the support panel
     const supportChannel = client.channels.cache.get(SUPPORT_CHANNEL_ID);
     if (supportChannel && supportChannel.isTextBased()) {
@@ -118,7 +109,7 @@ client.on('guildMemberAdd', async (member) => {
         try {
             await member.roles.add(communityRole);
         } catch (error) {
-            console.error('Failed to assign role:', error);
+            console.error('❌ Failed to assign role:', error);
         }
     }
     // Send a welcome message in the welcome channel
@@ -221,7 +212,7 @@ async function handleGeneralSupport(interaction) {
             components: [closeButton]
         });
     } catch (error) {
-        console.error('Failed to create support ticket:', error);
+        console.error('❌ Failed to create support ticket:', error);
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Error')
@@ -298,7 +289,7 @@ async function handleStaffApplication(interaction) {
         const questions = getQuestionsForRole(user, roleType);
         processApplication(channel, user, questions, roleType);
     } catch (error) {
-        console.error('Failed to create staff application channel:', error);
+        console.error('❌ Failed to create staff application channel:', error);
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Error')
@@ -364,7 +355,7 @@ async function handleBotDeveloperApplication(interaction) {
         const questions = getQuestionsForRole(user, 'bot_developer');
         processApplication(channel, user, questions, 'bot_developer');
     } catch (error) {
-        console.error('Failed to create bot developer application channel:', error);
+        console.error('❌ Failed to create bot developer application channel:', error);
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Error')
@@ -550,7 +541,7 @@ async function handleAccept(interaction) {
                 .setColor('#00FF00')]
         });
     } catch (error) {
-        console.error('Failed to assign role:', error);
+        console.error('❌ Failed to assign role:', error);
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Error')
@@ -590,7 +581,7 @@ async function handleDeny(interaction) {
                 .setColor('#FF0000')]
         });
     } catch (error) {
-        console.error('Failed to send denial message:', error);
+        console.error('❌ Failed to send denial message:', error);
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Error')
@@ -614,7 +605,7 @@ async function handleCloseTicket(interaction) {
         delete modmailChannels[channel.name.split('-')[1]]; // Remove from ongoing tickets
         await channel.delete();
     } catch (error) {
-        console.error('Failed to close ticket:', error);
+        console.error('❌ Failed to close ticket:', error);
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Error')
@@ -634,4 +625,4 @@ function getEligibleRole(member) {
 }
 
 // Login the bot
-client.login('MTM0MzI2NTQ0MzY5MDk3MTE4Nw.GVRZvx.B2uAuVR1U_UCYBFIAUhNrys3Fg4fFxUXYb9qTQ'); // Replace with your bot token
+client.login('MTM0MzI2NTQ0MzY5MDk3MTE4Nw.GVRZvx.B2uAuVR1U_UCYBFIAUhNrys3Fg4fFxUXYb9qTQ');
