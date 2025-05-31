@@ -1,3 +1,4 @@
+// Import required modules from discord.js
 import {
     Client,
     GatewayIntentBits,
@@ -11,7 +12,18 @@ import {
     StringSelectMenuOptionBuilder
 } from 'discord.js';
 
-// Bot setup
+// Import Express and HTTP for web server
+import express from 'express';
+import http from 'http';
+
+// Create Express app and HTTP server
+const app = express();
+const server = http.createServer(app);
+
+// Define port (for hosting services)
+const PORT = process.env.PORT || 3000;
+
+// Initialize the Discord client
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -25,7 +37,7 @@ const client = new Client({
 // Role IDs
 const COMMUNITY_ROLE_ID = '1346580732826619934'; // Community role
 const MODERATOR_ROLE_ID = '1362974587360641226'; // Moderator role
-const ADMIN_ROLE_ID = '1346580108739215453'; // Admin role (highest available role)
+const ADMIN_ROLE_ID = '1346580108739215453'; // Admin role
 const BOT_DEVELOPER_ROLE_ID = '1362972277804765264'; // Bot Developer role
 
 // Channel IDs
@@ -42,6 +54,16 @@ const ALLOWED_ROLE_IDS = [
 
 const modmailChannels = {}; // Dictionary to store ongoing modmail channels
 let supportPanelMessageId = null;
+
+// Web server route
+app.get('/', (req, res) => {
+    res.send('Discord bot is running!');
+});
+
+// Start the web server
+server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+});
 
 // When the bot is ready
 client.once('ready', async () => {
@@ -104,7 +126,7 @@ client.on('guildMemberAdd', async (member) => {
     if (welcomeChannel && welcomeChannel.isTextBased()) {
         const welcomeEmbed = new EmbedBuilder()
             .setTitle('Welcome to SolBots Community/Support Server!')
-            .setDescription(`Hey ${member}, welcome to the server!`) // Mention the user here
+            .setDescription(`Hey ${member}, welcome to the server!`)
             .setImage(member.user.displayAvatarURL({ size: 1024, dynamic: true }))
             .setColor('#00FF00');
         await welcomeChannel.send({ embeds: [welcomeEmbed] });
@@ -380,7 +402,8 @@ function processApplication(channel, user, questions, roleType) {
                     .setDescription(`**Applicant:** ${user} (${user.id})
 **Role Type:** ${roleType}
 **Answers:**
-${answers.map((answer, index) => `**Q${index + 1}:** ${questions[index]}\n**A:** ${answer}`).join('\n\n')}`)
+${answers.map((answer, index) => `**Q${index + 1}:** ${questions[index]}
+**A:** ${answer}`).join('\n')}`)
                     .setColor('#0099ff');
                 const acceptButton = new ActionRowBuilder()
                     .addComponents(
