@@ -1,0 +1,19 @@
+{
+  "name": "solmail",
+  "version": "1.0.0",
+  "description": "A ModMail bot for Discord",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "pm2": "^5.4.3"
+  }
+}
