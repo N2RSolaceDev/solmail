@@ -47,7 +47,7 @@ const ADMIN_ROLE_ID = '1346580108739215453'; // Admin role
 const BOT_DEVELOPER_ROLE_ID = '1362972277804765264'; // Bot Developer role
 
 // Channel IDs
-const WELCOME_CHANNEL_ID = '1362971897486250085'; // Welcome channel
+const WELCOME_CHANNEL_ID = '1390466348227891261'; // Welcome channel
 const SUPPORT_CHANNEL_ID = '1362971895716249651'; // Support channel
 const MODMAIL_CATEGORY_ID = '1362971873482248322'; // Modmail category
 const STAFF_APPLICATION_REVIEW_CHANNEL_ID = '1362971905572733080'; // Application review channel
