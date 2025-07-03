@@ -1,6 +1,9 @@
-// Load environment variables
-require('dotenv').config();
+// Load environment variables from .env
+import { config } from 'dotenv';
+config();
 
+// Import required modules
+import express from 'express';
 import {
     Client,
     GatewayIntentBits,
@@ -13,7 +16,18 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder
 } from 'discord.js';
-const express = require('express'); // Add Express for HTTP server
+
+// Initialize Express server
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+    res.send('SolBots Discord Bot is running!');
+});
+
+app.listen(PORT, () => {
+    console.log(`🌐 Web server is running on http://localhost:${PORT}`);
+});
 
 // Bot setup
 const client = new Client({
@@ -47,55 +61,44 @@ const ALLOWED_ROLE_IDS = [
 const modmailChannels = {}; // Dictionary to store ongoing modmail channels
 let supportPanelMessageId = null;
 
-// Start Express server
-const app = express();
-const PORT = process.env.PORT || 3000; // Use env port if available
-app.get('/', (req, res) => {
-    res.send('SolBots Discord Bot is running!');
-});
-app.listen(PORT, () => {
-    console.log(`🌐 Web server is running on http://localhost:${PORT}`);
-});
-
 // When the bot is ready
 client.once('ready', async () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
-    // Update or send the support panel
+
     const supportChannel = client.channels.cache.get(SUPPORT_CHANNEL_ID);
     if (supportChannel && supportChannel.isTextBased()) {
         const embed = new EmbedBuilder()
             .setTitle('Support Ticket')
             .setDescription('Select an option below.')
             .setColor('#0099ff');
-        const selectMenu = new ActionRowBuilder()
-            .addComponents(
-                new StringSelectMenuBuilder()
-                    .setCustomId('ticket_options')
-                    .setPlaceholder('Choose an option...')
-                    .addOptions(
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel('General Support')
-                            .setDescription('Start a general support ticket.')
-                            .setValue('general_support'),
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel('Staff Application')
-                            .setDescription('Apply for a staff position.')
-                            .setValue('staff_application'),
-                        new StringSelectMenuOptionBuilder()
-                            .setLabel('Bot Developer Application')
-                            .setDescription('Apply for a bot developer position.')
-                            .setValue('bot_developer_application')
-                    )
-            );
-        // Fetch the last message in the channel
+
+        const selectMenu = new ActionRowBuilder().addComponents(
+            new StringSelectMenuBuilder()
+                .setCustomId('ticket_options')
+                .setPlaceholder('Choose an option...')
+                .addOptions([
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('General Support')
+                        .setDescription('Start a general support ticket.')
+                        .setValue('general_support'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Staff Application')
+                        .setDescription('Apply for a staff position.')
+                        .setValue('staff_application'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Bot Developer Application')
+                        .setDescription('Apply for a bot developer position.')
+                        .setValue('bot_developer_application')
+                ])
+        );
+
         const messages = await supportChannel.messages.fetch({ limit: 1 });
         const lastMessage = messages.first();
+
         if (lastMessage && lastMessage.author.id === client.user.id && lastMessage.embeds.length > 0) {
-            // Update the existing message
             await lastMessage.edit({ embeds: [embed], components: [selectMenu] });
             supportPanelMessageId = lastMessage.id;
         } else {
-            // Send a new message
             const sentMessage = await supportChannel.send({ embeds: [embed], components: [selectMenu] });
             supportPanelMessageId = sentMessage.id;
         }
@@ -104,7 +107,6 @@ client.once('ready', async () => {
 
 // Handle guild member add event
 client.on('guildMemberAdd', async (member) => {
-    // Assign the community role
     const communityRole = member.guild.roles.cache.get(COMMUNITY_ROLE_ID);
     if (communityRole) {
         try {
@@ -113,7 +115,7 @@ client.on('guildMemberAdd', async (member) => {
             console.error('❌ Failed to assign role:', error);
         }
     }
-    // Send a welcome message in the welcome channel
+
     const welcomeChannel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
     if (welcomeChannel && welcomeChannel.isTextBased()) {
         const welcomeEmbed = new EmbedBuilder()
@@ -125,9 +127,10 @@ client.on('guildMemberAdd', async (member) => {
     }
 });
 
-// Handle interactions (dropdown and buttons)
-client.on('interactionCreate', async interaction => {
+// Interaction handler
+client.on('interactionCreate', async (interaction) => {
     if (!interaction.isStringSelectMenu() && !interaction.isButton()) return;
+
     if (interaction.customId === 'ticket_options') {
         const selectedValue = interaction.values[0];
         if (selectedValue === 'general_support') {
@@ -158,6 +161,7 @@ async function handleGeneralSupport(interaction) {
             ephemeral: true
         });
     }
+
     const guild = interaction.guild;
     const category = guild.channels.cache.get(MODMAIL_CATEGORY_ID);
     if (!category) {
@@ -169,6 +173,7 @@ async function handleGeneralSupport(interaction) {
             ephemeral: true
         });
     }
+
     try {
         const channel = await guild.channels.create({
             name: `ticket-${user.username}`,
@@ -190,7 +195,9 @@ async function handleGeneralSupport(interaction) {
             ],
             reason: `Mod Mail channel for ${user.username}`
         });
+
         modmailChannels[user.id] = channel.id;
+
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Ticket Created')
@@ -198,13 +205,14 @@ async function handleGeneralSupport(interaction) {
                 .setColor('#00FF00')],
             ephemeral: true
         });
-        const closeButton = new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId('close_ticket')
-                    .setLabel('Close Support')
-                    .setStyle(ButtonStyle.Danger)
-            );
+
+        const closeButton = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setCustomId('close_ticket')
+                .setLabel('Close Support')
+                .setStyle(ButtonStyle.Danger)
+        );
+
         await channel.send({
             embeds: [new EmbedBuilder()
                 .setTitle('New ModMail Ticket')
@@ -236,6 +244,7 @@ async function handleStaffApplication(interaction) {
             ephemeral: true
         });
     }
+
     const guild = interaction.guild;
     const category = guild.channels.cache.get(MODMAIL_CATEGORY_ID);
     if (!category) {
@@ -247,8 +256,10 @@ async function handleStaffApplication(interaction) {
             ephemeral: true
         });
     }
+
     const member = guild.members.cache.get(user.id);
     let roleType = getEligibleRole(member);
+
     if (!roleType) {
         return interaction.reply({
             embeds: [new EmbedBuilder()
@@ -258,6 +269,7 @@ async function handleStaffApplication(interaction) {
             ephemeral: true
         });
     }
+
     try {
         const channel = await guild.channels.create({
             name: `application-${user.username}`,
@@ -279,7 +291,9 @@ async function handleStaffApplication(interaction) {
             ],
             reason: `Staff application channel for ${user.username}`
         });
+
         modmailChannels[user.id] = channel.id;
+
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Application Started')
@@ -287,6 +301,7 @@ async function handleStaffApplication(interaction) {
                 .setColor('#00FF00')],
             ephemeral: true
         });
+
         const questions = getQuestionsForRole(user, roleType);
         processApplication(channel, user, questions, roleType);
     } catch (error) {
@@ -313,6 +328,7 @@ async function handleBotDeveloperApplication(interaction) {
             ephemeral: true
         });
     }
+
     const guild = interaction.guild;
     const category = guild.channels.cache.get(MODMAIL_CATEGORY_ID);
     if (!category) {
@@ -324,6 +340,7 @@ async function handleBotDeveloperApplication(interaction) {
             ephemeral: true
         });
     }
+
     try {
         const channel = await guild.channels.create({
             name: `application-${user.username}`,
@@ -345,7 +362,9 @@ async function handleBotDeveloperApplication(interaction) {
             ],
             reason: `Bot developer application channel for ${user.username}`
         });
+
         modmailChannels[user.id] = channel.id;
+
         await interaction.reply({
             embeds: [new EmbedBuilder()
                 .setTitle('Application Started')
@@ -353,6 +372,7 @@ async function handleBotDeveloperApplication(interaction) {
                 .setColor('#00FF00')],
             ephemeral: true
         });
+
         const questions = getQuestionsForRole(user, 'bot_developer');
         processApplication(channel, user, questions, 'bot_developer');
     } catch (error) {
@@ -387,6 +407,7 @@ function processApplication(channel, user, questions, roleType) {
                     .setDescription('Thank you for completing the application! It will now be reviewed by staff.')
                     .setColor('#00FF00')]
             });
+
             const reviewChannel = client.channels.cache.get(STAFF_APPLICATION_REVIEW_CHANNEL_ID);
             if (reviewChannel && reviewChannel.isTextBased()) {
                 const applicationEmbed = new EmbedBuilder()
@@ -397,33 +418,37 @@ function processApplication(channel, user, questions, roleType) {
 ${answers.map((answer, index) => `**Q${index + 1}:** ${questions[index]}
 **A:** ${answer}`).join('\n')}`)
                     .setColor('#0099ff');
-                const acceptButton = new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`accept_${roleType}_${user.id}`)
-                            .setLabel('Accept')
-                            .setStyle(ButtonStyle.Success),
-                        new ButtonBuilder()
-                            .setCustomId(`deny_${roleType}_${user.id}`)
-                            .setLabel('Deny')
-                            .setStyle(ButtonStyle.Danger)
-                    );
+
+                const acceptButton = new ActionRowBuilder().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`accept_${roleType}_${user.id}`)
+                        .setLabel('Accept')
+                        .setStyle(ButtonStyle.Success),
+                    new ButtonBuilder()
+                        .setCustomId(`deny_${roleType}_${user.id}`)
+                        .setLabel('Deny')
+                        .setStyle(ButtonStyle.Danger)
+                );
+
                 await reviewChannel.send({
                     embeds: [applicationEmbed],
                     components: [acceptButton]
                 });
             }
+
             delete modmailChannels[user.id];
             await channel.delete();
         }
     };
+
     channel.send({
         embeds: [new EmbedBuilder()
             .setTitle('Application Instructions')
             .setDescription('Please answer each question in the order they are asked. Once all questions are answered, your application will be submitted for review.')
             .setColor('#0099ff')]
     }).then(() => askQuestion());
-    client.on('messageCreate', async message => {
+
+    client.on('messageCreate', async (message) => {
         if (message.channel.id === channel.id && message.author.id === user.id) {
             answers.push(message.content);
             askQuestion();
@@ -500,9 +525,11 @@ async function handleAccept(interaction) {
             ephemeral: true
         });
     }
+
     const [, roleType, userId] = match;
     const user = await client.users.fetch(userId);
     const member = interaction.guild.members.cache.get(userId);
+
     if (!member) {
         return interaction.reply({
             embeds: [new EmbedBuilder()
@@ -512,6 +539,7 @@ async function handleAccept(interaction) {
             ephemeral: true
         });
     }
+
     let roleId;
     switch (roleType) {
         case 'moderator': roleId = MODERATOR_ROLE_ID; break;
@@ -526,6 +554,7 @@ async function handleAccept(interaction) {
                 ephemeral: true
             });
     }
+
     try {
         await member.roles.add(roleId);
         await interaction.reply({
@@ -565,8 +594,10 @@ async function handleDeny(interaction) {
             ephemeral: true
         });
     }
+
     const [, roleType, userId] = match;
     const user = await client.users.fetch(userId);
+
     try {
         await interaction.reply({
             embeds: [new EmbedBuilder()
@@ -596,6 +627,7 @@ async function handleDeny(interaction) {
 // Close Ticket
 async function handleCloseTicket(interaction) {
     const channel = interaction.channel;
+
     try {
         await channel.send({
             embeds: [new EmbedBuilder()
@@ -603,6 +635,7 @@ async function handleCloseTicket(interaction) {
                 .setDescription('This ticket has been closed by a staff member.')
                 .setColor('#FF0000')]
         });
+
         delete modmailChannels[channel.name.split('-')[1]]; // Remove from ongoing tickets
         await channel.delete();
     } catch (error) {
