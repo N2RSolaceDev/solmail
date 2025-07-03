@@ -1,3 +1,6 @@
+// Load environment variables
+require('dotenv').config();
+
 import {
     Client,
     GatewayIntentBits,
@@ -46,12 +49,10 @@ let supportPanelMessageId = null;
 
 // Start Express server
 const app = express();
-const PORT = 3000; // You can change this port if needed
-
+const PORT = process.env.PORT || 3000; // Use env port if available
 app.get('/', (req, res) => {
     res.send('SolBots Discord Bot is running!');
 });
-
 app.listen(PORT, () => {
     console.log(`🌐 Web server is running on http://localhost:${PORT}`);
 });
@@ -625,4 +626,4 @@ function getEligibleRole(member) {
 }
 
 // Login the bot
-client.login('MTM0MzI2NTQ0MzY5MDk3MTE4Nw.GVRZvx.B2uAuVR1U_UCYBFIAUhNrys3Fg4fFxUXYb9qTQ');
+client.login(process.env.DISCORD_TOKEN);
